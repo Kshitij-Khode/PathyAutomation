@@ -46,9 +46,10 @@ class AppCommandQueue:
 
 class TransferGuildToNormalCoord:
     def __init__(self, pid):
+        self.pid = pid
         self.acq = AppCommandQueue(pid)
-        if os.path.exists("%s.json" % self.__class__.__name__):
-            self.coords = json.load(open("%s.json" % self.__class__.__name__, "r"))
+        if os.path.exists("%s_%s.json" % (self.__class__.__name__, pid)):
+            self.coords = json.load(open("%s_%s.json" % (self.__class__.__name__, pid), "r"))
         else:
             self.clickIndex = 0
             self.coords = {}
@@ -85,7 +86,7 @@ class TransferGuildToNormalCoord:
             self.coords['inStashLoc'] = [mCoord.x, mCoord.y]
             print("Incoming stash location: %s, %s." % (mCoord.x, mCoord.y))
             print("Press enter to exit")
-            with open("%s.json" % self.__class__.__name__, "w") as f:
+            with open("%s_%s.json" % (self.__class__.__name__, self.pid), "w") as f:
                 f.write(json.dumps(self.coords, indent=4))
         self.clickIndex += 1
 
@@ -103,8 +104,8 @@ class TransferGuildToNormalCoord:
 class ClearNormalCoord:
     def __init__(self, pid):
         self.acq = AppCommandQueue(pid)
-        if os.path.exists("%s.json" % self.__class__.__name__):
-            self.coords = json.load(open("%s.json" % self.__class__.__name__, "r"))
+        if os.path.exists("%s_%s.json" % (self.__class__.__name__, pid)):
+            self.coords = json.load(open("%s_%s.json" % (self.__class__.__name__, pid), "r"))
         else:
             self.clickIndex = 0
             self.coords = {}
@@ -146,7 +147,7 @@ class ClearNormalCoord:
             self.coords['sellerAccept'] = [mCoord.x, mCoord.y]
             print("Seller accept button location: %s, %s." % (mCoord.x, mCoord.y))
             print("Press enter to exit")
-            with open("%s.json" % self.__class__.__name__, "w") as f:
+            with open("%s_%s.json" % (self.__class__.__name__, self.pid), "w") as f:
                 f.write(json.dumps(self.coords, indent=4))
         self.clickIndex += 1
 
