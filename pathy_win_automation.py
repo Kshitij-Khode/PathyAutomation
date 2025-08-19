@@ -22,18 +22,21 @@ class AppCommandQueue:
         self.ahkScript.write("WinActivate, ahk_pid %s\n" % pid)
         self.ahkScript.write("\n")
 
-    def addClick(self, x, y):
+    def addLeftClick(self, x, y):
         self.ahkScript.write("Click %s %s\n" % (x, y))
+
+    def addRightClick(self, x, y):
+        self.ahkScript.write("Click, Right, %s, %s\n" % (x, y))
 
     def addCtrlClick(self, x, y):
         self.ahkScript.write("Send, ^{Click %s %s}\n" % (x, y))
 
-    def addGridCtrlClick(self, left, top, right, bot, xMax, yMax, xStart, xEnd, yStart, yEnd):
+    def addGridFunClick(self, left, top, right, bot, xMax, yMax, xStart, xEnd, yStart, yEnd, clickFun):
         xInc = (right - left) / (xMax-1)
         yInc = (bot - top) / (yMax-1)
         for x in range(xStart, xEnd):
             for y in range(yStart, yEnd):
-                self.addCtrlClick(left + xInc*x, top + yInc*y)
+                clickFun(left + xInc*x, top + yInc*y)
 
     def run(self):
         self.ahkScript.write("^e::ExitApp\n")
@@ -53,11 +56,11 @@ class TransferGuildToNormalCoord:
         else:
             self.clickIndex = 0
             self.coords = {}
-            ahk.add_hotkey('~LButton', callback=self.on_click)
+            ahk.add_hotkey('~LButton', callback=self.onClick)
             ahk.start_hotkeys()
             input("Click on a non-char moving location ...")
 
-    def on_click(self):
+    def onClick(self):
         mCoord = ahk.mouse_position
         if self.clickIndex == 0:
             print("Path of exile window active ...")
@@ -92,10 +95,17 @@ class TransferGuildToNormalCoord:
 
     def generateCommandQueue(self):
         for r in range(12):
-            self.acq.addClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
-            self.acq.addGridCtrlClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 24, 24, 2*r, 2*r+2, 0, 24)
+            self.acq.addLeftClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
+            self.acq.addGridFunClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 24, 24, 2*r, 2*r+2, 0, 24, self.acq.addCtrlClick)
             self.acq.addCtrlClick(self.coords["inStashLoc"][0], self.coords["inStashLoc"][1])
-            self.acq.addGridCtrlClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5)
+            self.acq.addGridFunClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5, self.acq.addCtrlClick)
+        self.acq.ahkScript.write("Send \"{Shift down}\"\n")
+        self.acq.addRightClick(
+            self.coords["outStashTopLeft"][0] + ((self.coords["outStashBottomRight"][0] - self.coords["outStashTopLeft"][0])/23) * 23,
+            self.coords["outStashTopLeft"][1]
+        )
+        self.acq.addGridFunClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 24, 24, 0, 24, 0, 24, self.acq.addLeftClick)
+        self.acq.ahkScript.write("Send \"{Shift up}\"\n")
 
     def run(self):
         self.acq.run()
@@ -109,12 +119,12 @@ class ClearNormalCoord:
         else:
             self.clickIndex = 0
             self.coords = {}
-            ahk.add_hotkey('~LButton', callback=self.on_click)
-            ahk.add_hotkey('^~LButton', callback=self.on_click)
+            ahk.add_hotkey('~LButton', callback=self.onClick)
+            ahk.add_hotkey('^~LButton', callback=self.onClick)
             ahk.start_hotkeys()
             input("Click on a non-char moving location ...")
 
-    def on_click(self):
+    def onClick(self):
         mCoord = ahk.mouse_position
         if self.clickIndex == 0:
             print("Path of exile window active ...")
@@ -153,19 +163,19 @@ class ClearNormalCoord:
 
     def generateQuadCommandQueue(self):
         for r in range(12):
-            self.acq.addClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
-            self.acq.addGridCtrlClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 24, 24, 2*r, 2*r+2, 0, 24)
+            self.acq.addLeftClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
+            self.acq.addGridFunClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 24, 24, 2*r, 2*r+2, 0, 24, self.acq.addCtrlClick)
             self.acq.addCtrlClick(self.coords["seller"][0], self.coords["seller"][1])
-            self.acq.addGridCtrlClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5)
-            self.acq.addClick(self.coords["sellerAccept"][0], self.coords["sellerAccept"][1])
+            self.acq.addGridFunClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5, self.acq.addCtrlClick)
+            self.acq.addLeftClick(self.coords["sellerAccept"][0], self.coords["sellerAccept"][1])
 
     def generateNormalCommandQueue(self):
         for r in range(3):
-            self.acq.addClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
-            self.acq.addGridCtrlClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 12, 12, 4*r, 4*r+4, 0, 12)
+            self.acq.addLeftClick(self.coords["outStashLoc"][0], self.coords["outStashLoc"][1])
+            self.acq.addGridFunClick(self.coords["outStashTopLeft"][0], self.coords["outStashTopLeft"][1], self.coords["outStashBottomRight"][0], self.coords["outStashBottomRight"][1], 12, 12, 4*r, 4*r+4, 0, 12, self.acq.addCtrlClick)
             self.acq.addCtrlClick(self.coords["seller"][0], self.coords["seller"][1])
-            self.acq.addGridCtrlClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5)
-            self.acq.addClick(self.coords["sellerAccept"][0], self.coords["sellerAccept"][1])
+            self.acq.addGridFunClick(self.coords["inventoryTopLeft"][0], self.coords["inventoryTopLeft"][1], self.coords["inventoryBottomRight"][0], self.coords["inventoryBottomRight"][1], 12, 5, 0, 12, 0, 5, self.acq.addCtrlClick)
+            self.acq.addLeftClick(self.coords["sellerAccept"][0], self.coords["sellerAccept"][1])
 
     def run(self):
         self.acq.run()
